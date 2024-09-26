@@ -1,0 +1,90 @@
+---
+title: "Análisis de Genomas SARS-2"
+output: html_notebook
+Name: Josué Tapia Hernández
+chunk_output_type: inline
+editor_options: 
+  chunk_output_type: inline
+---
+
+#Instalar los paquetes necesarios
+
+```{r Install Packges}
+install.packages("seqinr")
+install.packages("phangorn")
+install.packages("remotes")
+install.packages("phytools")
+install.packages("geiger")
+remotes::install_github("GuangchuangYu/treeio")
+install.packages("BiocManager")
+BiocManager::install("ggtreeExtra")
+BiocManager::install("DECIPHER")
+install.packages("ape")
+```
+
+#Cargar las librerias necesarias
+
+```{r Load packges}
+library(seqinr)
+library(adegenet)
+library(ape)
+library(ggtreeExtra)
+library(DECIPHER)
+library(viridis)
+library(ggplot2)
+library(phytools)
+```
+
+#Crea un árbol filogenético a partir de los Accession Numbers de las secuencias SARS-2
+
+```{r Create a DNAStringSet object}
+seqs <- readDNAStringSet("/Users/josebonilla-delgado/Desktop/Evidencia 2/SARS2.txt")
+```
+
+```{r Visualize Sequences}
+seqs
+```
+
+```{r Orient sequences in the same orientation}
+seqs <- OrientNucleotides(seqs)
+```
+
+```{r Perform the alignment}
+aligned <- AlignSeqs(seqs)
+```
+
+```{r View the alignement in a browser}
+BrowseSeqs(aligned, highlight=0)
+```
+
+```{r Write the alignment to a new FASTA file}
+writeXStringSet(aligned,file="Viruses_aligned.fasta")
+```
+
+```{r Read the aligned data}
+dna <- read.alignment("Viruses_aligned.fasta", format = "fasta")
+```
+
+#Crea una matriz de distancia. Nota: Entre más oscuro sea, mayor la distancia evolutiva.
+
+```{r Create a distance matrix}
+D <- dist.alignment(dna, matrix = "similarity")
+temp <- as.data.frame(as.matrix(D))
+table.paint(temp, cleg=0, clabel.row=.5, clabel.col=.5)+
+  scale_color_viridis()
+```
+
+```{r}
+tre <- nj(D)
+tre <- ladderize(tre)
+plot(tre, cex = 0.6)
+title("Similarity in viruses genomes")
+```
+
+```{r}
+tre <- nj(D)
+tre <- ladderize(tre)
+plot(tre, type="fan", cex = 0.6)
+title("Similarity in viruses genomes")
+```
+
